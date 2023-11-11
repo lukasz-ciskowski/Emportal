@@ -8,10 +8,12 @@ import { toTypedSchema } from '@vee-validate/yup';
 import { FormExperience, validationSchema } from './schema';
 import InterestsList from './components/InterestsList.vue';
 import ExperiencesList from './components/ExperiencesList.vue';
+import { useSaveEmployee } from './composables/useSaveEmployee';
 
 const route = useRoute();
-const { data } = await useRetrieveEmployee(route.params.id.toString() ?? '');
+const { data, refresh } = await useRetrieveEmployee(route.params.id.toString() ?? '');
 const { data: allInterests } = await useInterests();
+const { handleSave: handleSaveEmployee } = useSaveEmployee();
 
 const apiPath = useRuntimeConfig().public.api;
 const authStore = useAuthStore();
@@ -27,9 +29,10 @@ const handleCancelEditing = () => {
   isEditing.value = false;
 };
 
-const { handleSubmit, defineComponentBinds, setErrors, resetForm } = useForm({
+const { handleSubmit, defineComponentBinds, resetForm } = useForm({
   validationSchema: toTypedSchema(validationSchema),
   initialValues: {
+    position: data.value?.position ?? '',
     about: data.value?.about ?? '',
     interests: data.value?.interests ?? [],
     experience:
@@ -41,7 +44,17 @@ const { handleSubmit, defineComponentBinds, setErrors, resetForm } = useForm({
   },
 });
 
+const handleSave = handleSubmit((data) => {
+  handleSaveEmployee(data).then(() => {
+    isEditing.value = false;
+    resetForm({ values: data });
+    refresh();
+  });
+});
+
+const position = defineComponentBinds('position');
 const about = defineComponentBinds('about');
+
 const { remove: removeInterest, push: addInterest, fields: interests } = useFieldArray('interests');
 const {
   push: addExperience,
@@ -79,7 +92,8 @@ const availableInterests = computed(() => {
         <v-col lg="12" sm="7" cols="12">
           <div class="py-4 d-flex flex-column">
             <span class="text-h5 font-weight-bold">{{ data?.firstName }} {{ data?.lastName }}</span>
-            <span class="text-medium-emphasis">{{ data?.position }}</span>
+            <span class="text-medium-emphasis" v-if="!isEditing">{{ data?.position }}</span>
+            <v-text-field v-else outlined v-bind="position" placeholder="Pozycja" />
           </div>
           <Section title="O mnie" />
           <p class="text-justify" v-if="!isEditing">{{ about.modelValue }}</p>
@@ -118,7 +132,7 @@ const availableInterests = computed(() => {
   <v-footer app v-show="isEditing">
     <v-container class="d-flex justify-end">
       <v-btn variant="text" size="large" class="mr-4" @click="handleCancelEditing">Anuluj</v-btn>
-      <v-btn variant="flat" color="primary" size="large" class="save-button">Zapisz</v-btn>
+      <v-btn variant="flat" color="primary" size="large" class="save-button" @click="handleSave">Zapisz</v-btn>
     </v-container>
   </v-footer>
 </template>

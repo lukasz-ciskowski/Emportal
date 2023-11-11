@@ -87,6 +87,27 @@ app.get('/employees/:id', (req, res) => {
   });
 });
 
+app.put('/employees', (req, res) => {
+  const token = req.cookies.token;
+  const userData = jwt.decode(token);
+  
+  const employee = EMPLOYEES.find((employee) => employee.id === Number(userData.id));
+  if (!employee) {
+    return res.status(404).json({
+      message: 'Not found',
+    });
+  }
+
+  employee.position = req.body.position;
+  employee.about = req.body.about;
+  employee.interests = req.body.interests;
+  employee.experience = req.body.experience;
+
+  return res.json({
+    ...employee,
+  });
+});
+
 app.get('/static/interests', (req, res) => {
   return res.json({
     interests: INTERESTS,
