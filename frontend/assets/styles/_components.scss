@@ -1,0 +1,15 @@
+body {
+    font-size: 16px;
+}
+
+.main-content {
+    width: 100%;
+    max-width: $content-width;
+    padding: 10px;
+    margin: 0 auto;
+}
+
+.v-card-actions {
+    display: flex;
+    justify-content: flex-end;
+}
