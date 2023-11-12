@@ -3,6 +3,8 @@ import './utils/yup';
 </script>
 
 <template>
+  <VitePwaManifest />
+  <NuxtLoadingIndicator />
   <v-app>
     <Nav />
     <v-main class="main-content">

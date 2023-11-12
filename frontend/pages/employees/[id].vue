@@ -29,6 +29,9 @@ const handleCancelEditing = () => {
   isEditing.value = false;
 };
 
+const isSuccessSave = ref(false);
+const isErrorSave = ref(false);
+
 const { handleSubmit, defineComponentBinds, resetForm } = useForm({
   validationSchema: toTypedSchema(validationSchema),
   initialValues: {
@@ -44,12 +47,30 @@ const { handleSubmit, defineComponentBinds, resetForm } = useForm({
   },
 });
 
-const handleSave = handleSubmit((data) => {
-  handleSaveEmployee(data).then(() => {
-    isEditing.value = false;
-    resetForm({ values: data });
-    refresh();
-  });
+const handleSave = handleSubmit(async (formData) => {
+  try {
+    await handleSaveEmployee(formData);
+
+    isSuccessSave.value = true;
+  } catch (error) {
+    isErrorSave.value = true;
+    // replace cached data with new one
+    if ('serviceWorker' in navigator) {
+      console.log('🚀 ~ file: [id].vue:59 ~ handleSave ~ navigator:', navigator.serviceWorker);
+      const cache = await caches.open('api');
+
+      const jsonResponse = new Response(JSON.stringify({ ...data.value, ...formData }), {
+        headers: {
+          'content-type': 'application/json',
+        },
+      });
+      await cache.put(`/api/employees/${route.params.id}`, jsonResponse);
+    }
+  }
+
+  isEditing.value = false;
+  resetForm({ values: formData });
+  refresh();
 });
 
 const position = defineComponentBinds('position');
@@ -74,6 +95,9 @@ const availableInterests = computed(() => {
 </script>
 
 <template>
+  <v-snackbar :timeout="2000" color="green" rounded="pill" v-model="isSuccessSave" variant="flat">
+    Zapisano pomyślnie
+  </v-snackbar>
   <v-row>
     <v-col lg="4" sm="12" cols="12">
       <v-row>

@@ -13,6 +13,7 @@
     "@nuxt/devtools": "latest",
     "@nuxtjs/style-resources": "^1.2.1",
     "@types/luxon": "^3.3.4",
+    "@vite-pwa/nuxt": "^0.2.1",
     "concurrently": "^8.2.2",
     "nuxt": "^3.7.3",
     "sass": "^1.67.0",
